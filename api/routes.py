@@ -7,8 +7,10 @@ import uuid
 
 from rag.pipeline import RAGPipeline
 from rag.models.schemas import RAGQueryRequest, RAGResponse
+from rag.sync.service import MedicalKnowledgeSyncService
 
 router = APIRouter(prefix="/rag", tags=["RAG"])
+sync_router = APIRouter(prefix="/medical-kb", tags=["Medical-KB"])
 
 # Dependency to get pipeline (instantiating it once would be better for prod, 
 # but this is fine for the prototype)
@@ -51,3 +53,25 @@ async def ingest_document(
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
+
+_sync_service_instance = None
+def get_sync_service():
+    global _sync_service_instance
+    if _sync_service_instance is None:
+        _sync_service_instance = MedicalKnowledgeSyncService()
+    return _sync_service_instance
+
+@sync_router.post("/sync", summary="Synchronize Medical Knowledge Base", description="Automatically discovers and ingests new or updated medical documents from approved sources.")
+async def sync_medical_kb(service: MedicalKnowledgeSyncService = Depends(get_sync_service)):
+    try:
+        results = service.sync()
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@sync_router.get("/status", summary="Medical Knowledge Base Sync Status", description="Get the status of the local medical knowledge base sync.")
+async def sync_status(service: MedicalKnowledgeSyncService = Depends(get_sync_service)):
+    try:
+        return service.get_status()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -38,9 +38,26 @@ class RAGPipeline:
             model_name=settings.gemini_model
         )
 
-    def ingest(self, file_path: str, source_url: Optional[str] = None, publisher: Optional[str] = None) -> List[str]:
+    def ingest(
+        self, 
+        file_path: str, 
+        source_url: Optional[str] = None, 
+        publisher: Optional[str] = None,
+        document_id: Optional[str] = None,
+        publication_date: Optional[str] = None,
+        content_hash: Optional[str] = None,
+        source_type: str = "medical_knowledge"
+    ) -> List[str]:
         # 1. Ingest
-        documents = ingest_pdf(file_path, source_url, publisher)
+        documents = ingest_pdf(
+            file_path, 
+            source_url, 
+            publisher,
+            document_id=document_id,
+            publication_date=publication_date,
+            content_hash=content_hash,
+            source_type=source_type
+        )
         # 2. Chunk
         chunks = chunk_documents(documents, settings.chunk_size, settings.chunk_overlap)
         # 3. Store

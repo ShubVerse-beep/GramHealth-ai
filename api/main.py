@@ -4,7 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 import logging
 
-from .routes import router as rag_router
+from .routes import router as rag_router, sync_router
 from .agent_routes import router as agent_router
 
 logger = logging.getLogger(__name__)
@@ -49,6 +49,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 app.include_router(rag_router)
+app.include_router(sync_router)
 app.include_router(agent_router)
 
 @app.get("/health")
